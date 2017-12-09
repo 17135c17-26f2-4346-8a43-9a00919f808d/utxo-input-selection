@@ -20,6 +20,7 @@ import Crypto.PubKey.Curve25519
 import qualified Data.Text as T
 import qualified Control.Foldl as F
 import Test.QuickCheck
+import Text.Tabl
 import Data.Word
 import Data.Proxy
 import Data.Data
@@ -202,6 +203,13 @@ data Env = Env {
   } deriving (Ord, Eq, Show)
 
 --------------------------------------------------------------------------------
+emptyEnv :: Env
+emptyEnv = Env {
+    envUTXO = UTXO mempty
+  , envWallets = mempty
+  }
+
+--------------------------------------------------------------------------------
 giveStakeTo :: PublicKey -> Coin -> Env -> Env
 giveStakeTo a coin e@Env{..} =
   case Ix.getOne (envWallets @= a) of
@@ -223,6 +231,7 @@ distributeStake distr env = case distr of
   AverageDistribution -> averageDistr env
 
 --------------------------------------------------------------------------------
+-- | Each user gets an equal amount of stake.
 communistDistr :: Env -> Env
 communistDistr env@Env{..} =
   let owners = allOwners envWallets
@@ -248,13 +257,21 @@ averageDistr env = go maxBound env
     go :: Coin -> Env -> Env
     go _ e = e
 
-type UserAction = Wallets -> Wallets
+--------------------------------------------------------------------------------
+type UserAction = Env -> Env
 
+--------------------------------------------------------------------------------
 type Simulation = [UserAction]
 
-type Report = (Wallets, UTXO)
+--------------------------------------------------------------------------------
+simulate :: Env -> Simulation -> Env
+simulate initialEnv steps = foldl (flip ($)) initialEnv steps
 
-{-
-simulate :: UTXO -> Wallets -> Simulation -> Report
-simulate initialUtxo wallets steps = f
--}
+--------------------------------------------------------------------------------
+showReport :: Env -> IO ()
+showReport _ =
+  putStrLn $ T.unpack (tabl EnvAscii DecorAll DecorAll [AlignCentre] rows)
+  where
+    rows = headers : theData
+    headers = ["Distribution"]
+    theData = mempty

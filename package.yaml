@@ -29,12 +29,13 @@ dependencies:
 - cryptonite >= 0.21
 - foldl
 - text
+- tabl
 
 library:
   source-dirs: src
 
 executables:
-  utxo-input-selection-exe:
+  utxo-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
